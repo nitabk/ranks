@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internship Candidate Ranking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 0 4px 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 150px repeat(5, 1fr);
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .criteria-header {
+            font-weight: bold;
+            text-align: center;
+        }
+        .rating-select {
+            width: 100%;
+        }
+        .results-table th, .results-table td {
+            text-align: center;
+        }
+        .candidate-name {
+            text-align: left !important;
+        }
+        .final-ranking {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .error {
+            color: #e74c3c;
+            margin: 5px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internship Candidate Ranking System</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('settings')">Settings</div>
+            <div class="tab" onclick="showTab('ratings')">Ratings</div>
+            <div class="tab" onclick="showTab('results')">Results</div>
+        </div>
+        
+        <div id="settings" class="tab-content active">
+            <div class="card">
+                <h2>System Configuration</h2>
+                <div class="settings-grid">
+                    <label for="criteria1">Criteria 1:</label>
+                    <input type="text" id="criteria1" value="Technical Skills" placeholder="Enter criterion name">
+                    
+                    <label for="criteria2">Criteria 2:</label>
+                    <input type="text" id="criteria2" value="Communication" placeholder="Enter criterion name">
+                    
+                    <label for="criteria3">Criteria 3:</label>
+                    <input type="text" id="criteria3" value="Problem Solving" placeholder="Enter criterion name">
+                    
+                    <label for="criteria4">Criteria 4:</label>
+                    <input type="text" id="criteria4" value="Work Ethic" placeholder="Enter criterion name">
+                    
+                    <label for="criteria5">Criteria 5:</label>
+                    <input type="text" id="criteria5" value="Cultural Fit" placeholder="Enter criterion name">
+                </div>
+                <button onclick="updateCriteria()">Update Criteria</button>
+            </div>
+            
+            <div class="card">
+                <h2>Manage Candidates</h2>
+                <div>
+                    <input type="text" id="candidateName" placeholder="Enter candidate name">
+                    <button onclick="addCandidate()">Add Candidate</button>
+                </div>
+                <div id="candidateError" class="error hidden"></div>
+                <div id="candidatesList">
+                    <h3>Current Candidates:</h3>
+                    <ul id="candidatesUL"></ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Manage Raters</h2>
+                <div>
+                    <input type="text" id="raterName" placeholder="Enter rater name">
+                    <button onclick="addRater()">Add Rater</button>
+                </div>
+                <div id="raterError" class="error hidden"></div>
+                <div id="ratersList">
+                    <h3>Current Raters:</h3>
+                    <ul id="ratersUL"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="ratings" class="tab-content">
+            <div class="card">
+                <h2>Enter Ratings</h2>
+                <div>
+                    <select id="raterSelect" onchange="showRatingsForm()">
+                        <option value="">Select a rater</option>
+                    </select>
+                </div>
+                
+                <div id="ratingsForm" class="hidden">
+                    <h3>Rate Candidates</h3>
+                    <p>Rate each candidate on a scale of 1-10 for each criterion:</p>
+                    
+                    <div id="criteriaLabels" class="criteria-grid">
+                        <div></div>
+                        <div class="criteria-header" id="criteriaHeader1">Technical Skills</div>
+                        <div class="criteria-header" id="criteriaHeader2">Communication</div>
+                        <div class="criteria-header" id="criteriaHeader3">Problem Solving</div>
+                        <div class="criteria-header" id="criteriaHeader4">Work Ethic</div>
+                        <div class="criteria-header" id="criteriaHeader5">Cultural Fit</div>
+                    </div>
+                    
+                    <div id="ratingsGrid"></div>
+                    
+                    <button onclick="saveRatings()">Save Ratings</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="results" class="tab-content">
+            <div class="card">
+                <h2>Individual Rankings</h2>
+                <select id="resultRaterSelect" onchange="showRaterResults()">
+                    <option value="">Select a rater</option>
+                </select>
+                
+                <div id="raterResults" class="hidden">
+                    <h3>Rankings by <span id="selectedRaterName"></span></h3>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th class="candidate-name">Candidate</th>
+                                <th id="resultCriteriaHeader1">Technical Skills</th>
+                                <th id="resultCriteriaHeader2">Communication</th>
+                                <th id="resultCriteriaHeader3">Problem Solving</th>
+                                <th id="resultCriteriaHeader4">Work Ethic</th>
+                                <th id="resultCriteriaHeader5">Cultural Fit</th>
+                                <th>Average</th>
+                            </tr>
+                        </thead>
+                        <tbody id="raterResultsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Final Rankings</h2>
+                <button onclick="calculateFinalRankings()">Calculate Final Rankings</button>
+                
+                <div id="finalRankings" class="hidden">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th class="candidate-name">Candidate</th>
+                                <th>Average Rating</th>
+                                <th>Raters</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finalRankingsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let candidates = [];
+        let raters = [];
+        let criteria = [
+            "Technical Skills",
+            "Communication",
+            "Problem Solving",
+            "Work Ethic",
+            "Cultural Fit"
+        ];
+        let ratings = {};
+        
+        // Initialize the app
+        function init() {
+            loadFromLocalStorage();
+            renderCandidates();
+            renderRaters();
+            updateRaterDropdowns();
+            updateCriteriaLabels();
+        }
+        
+        // Tab functionality
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Candidate management
+        function addCandidate() {
+            const candidateNameInput = document.getElementById('candidateName');
+            const candidateName = candidateNameInput.value.trim();
+            const errorElement = document.getElementById('candidateError');
+            
+            if (!candidateName) {
+                errorElement.textContent = "Please enter a candidate name";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (candidates.includes(candidateName)) {
+                errorElement.textContent = "This candidate already exists";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            errorElement.classList.add('hidden');
+            candidates.push(candidateName);
+            candidateNameInput.value = '';
+            
+            renderCandidates();
+            saveToLocalStorage();
+        }
+        
+        function removeCandidate(candidateName) {
+            candidates = candidates.filter(name => name !== candidateName);
+            
+            // Also remove their ratings
+            for (const rater in ratings) {
+                if (ratings[rater][candidateName]) {
+                    delete ratings[rater][candidateName];
+                }
+            }
+            
+            renderCandidates();
+            saveToLocalStorage();
+        }
+        
+        function renderCandidates() {
+            const ul = document.getElementById('candidatesUL');
+            ul.innerHTML = '';
+            
+            if (candidates.length === 0) {
+                ul.innerHTML = '<li>No candidates added yet</li>';
+                return;
+            }
+            
+            candidates.forEach(candidateName => {
+                const li = document.createElement('li');
+                li.textContent = candidateName;
+                
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.style.marginLeft = '10px';
+                removeButton.onclick = () => removeCandidate(candidateName);
+                
+                li.appendChild(removeButton);
+                ul.appendChild(li);
+            });
+        }
+        
+        // Rater management
+        function addRater() {
+            const raterNameInput = document.getElementById('raterName');
+            const raterName = raterNameInput.value.trim();
+            const errorElement = document.getElementById('raterError');
+            
+            if (!raterName) {
+                errorElement.textContent = "Please enter a rater name";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (raters.includes(raterName)) {
+                errorElement.textContent = "This rater already exists";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            errorElement.classList.add('hidden');
+            raters.push(raterName);
+            raterNameInput.value = '';
+            
+            // Initialize ratings object for this rater
+            ratings[raterName] = {};
+            
+            renderRaters();
+            updateRaterDropdowns();
+            saveToLocalStorage();
+        }
+        
+        function removeRater(raterName) {
+            raters = raters.filter(name => name !== raterName);
+            
+            // Remove their ratings
+            if (ratings[raterName]) {
+                delete ratings[raterName];
+            }
+            
+            renderRaters();
+            updateRaterDropdowns();
+            saveToLocalStorage();
+        }
+        
+        function renderRaters() {
+            const ul = document.getElementById('ratersUL');
+            ul.innerHTML = '';
+            
+            if (raters.length === 0) {
+                ul.innerHTML = '<li>No raters added yet</li>';
+                return;
+            }
+            
+            raters.forEach(raterName => {
+                const li = document.createElement('li');
+                li.textContent = raterName;
+                
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.style.marginLeft = '10px';
+                removeButton.onclick = () => removeRater(raterName);
+                
+                li.appendChild(removeButton);
+                ul.appendChild(li);
+            });
+        }
+        
+        function updateRaterDropdowns() {
+            const raterSelect = document.getElementById('raterSelect');
+            const resultRaterSelect = document.getElementById('resultRaterSelect');
+            
+            // Clear existing options
+            raterSelect.innerHTML = '<option value="">Select a rater</option>';
+            resultRaterSelect.innerHTML = '<option value="">Select a rater</option>';
+            
+            // Add options for each rater
+            raters.forEach(raterName => {
+                const option1 = document.createElement('option');
+                option1.value = raterName;
+                option1.textContent = raterName;
+                raterSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = raterName;
+                option2.textContent = raterName;
+                resultRaterSelect.appendChild(option2);
+            });
+        }
+        
+        // Criteria management
+        function updateCriteria() {
+            criteria = [
+                document.getElementById('criteria1').value.trim() || "Technical Skills",
+                document.getElementById('criteria2').value.trim() || "Communication",
+                document.getElementById('criteria3').value.trim() || "Problem Solving",
+                document.getElementById('criteria4').value.trim() || "Work Ethic",
+                document.getElementById('criteria5').value.trim() || "Cultural Fit"
+            ];
+            
+            updateCriteriaLabels();
+            saveToLocalStorage();
+        }
+        
+        function updateCriteriaLabels() {
+            // Update criteria headers in the rating form
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`criteriaHeader${i}`).textContent = criteria[i-1];
+                document.getElementById(`resultCriteriaHeader${i}`).textContent = criteria[i-1];
+            }
+        }
+        
+        // Ratings functionality
+        function showRatingsForm() {
+            const raterSelect = document.getElementById('raterSelect');
+            const ratingsForm = document.getElementById('ratingsForm');
+            
+            if (!raterSelect.value) {
+                ratingsForm.classList.add('hidden');
+                return;
+            }
+            
+            ratingsForm.classList.remove('hidden');
+            renderRatingsGrid(raterSelect.value);
+        }
+        
+        function renderRatingsGrid(raterName) {
+            const grid = document.getElementById('ratingsGrid');
+            grid.innerHTML = '';
+            
+            candidates.forEach(candidateName => {
+                const row = document.createElement('div');
+                row.className = 'criteria-grid';
+                
+                // Candidate name
+                const nameDiv = document.createElement('div');
+                nameDiv.textContent = candidateName;
+                nameDiv.style.fontWeight = 'bold';
+                row.appendChild(nameDiv);
+                
+                // Rating selects for each criteria
+                for (let i = 1; i <= 5; i++) {
+                    const select = document.createElement('select');
+                    select.className = 'rating-select';
+                    select.id = `rating_${candidateName.replace(/\s+/g, '_')}_${i}`;
+                    
+                    // Add options 1-10
+                    for (let j = 1; j <= 10; j++) {
+                        const option = document.createElement('option');
+                        option.value = j;
+                        option.textContent = j;
+                        select.appendChild(option);
+                    }
+                    
+                    // Set existing value if available
+                    if (ratings[raterName] && 
+                        ratings[raterName][candidateName] && 
+                        ratings[raterName][candidateName][i-1] !== undefined) {
+                        select.value = ratings[raterName][candidateName][i-1];
+                    }
+                    
+                    row.appendChild(select);
+                }
+                
+                grid.appendChild(row);
+            });
+        }
+        
+        function saveRatings() {
+            const raterName = document.getElementById('raterSelect').value;
+            if (!raterName) return;
+            
+            if (!ratings[raterName]) {
+                ratings[raterName] = {};
+            }
+            
+            candidates.forEach(candidateName => {
+                const candidateRatings = [];
+                
+                for (let i = 1; i <= 5; i++) {
+                    const selectId = `rating_${candidateName.replace(/\s+/g, '_')}_${i}`;
+                    const rating = parseInt(document.getElementById(selectId).value);
+                    candidateRatings.push(rating);
+                }
+                
+                ratings[raterName][candidateName] = candidateRatings;
+            });
+            
+            saveToLocalStorage();
+            alert('Ratings saved successfully!');
+        }
+        
+        // Results functionality
+        function showRaterResults() {
+            const raterName = document.getElementById('resultRaterSelect').value;
+            const resultsDiv = document.getElementById('raterResults');
+            
+            if (!raterName) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            
+            resultsDiv.classList.remove('hidden');
+            document.getElementById('selectedRaterName').textContent = raterName;
+            
+            if (!ratings[raterName]) {
+                document.getElementById('raterResultsBody').innerHTML = 
+                    '<tr><td colspan="8">No ratings available for this rater</td></tr>';
+                return;
+            }
+            
+            renderRaterResults(raterName);
+        }
+        
+        function renderRaterResults(raterName) {
+            const tbody = document.getElementById('raterResultsBody');
+            tbody.innerHTML = '';
+            
+            // Calculate averages and sort candidates
+            const candidateAverages = [];
+            
+            candidates.forEach(candidateName => {
+                if (ratings[raterName] && ratings[raterName][candidateName]) {
+                    const candidateRatings = ratings[raterName][candidateName];
+                    const sum = candidateRatings.reduce((acc, val) => acc + val, 0);
+                    const avg = sum / candidateRatings.length;
+                    
+                    candidateAverages.push({
+                        name: candidateName,
+                        ratings: candidateRatings,
+                        average: avg
+                    });
+                }
+            });
+            
+            // Sort by average (highest first)
+            candidateAverages.sort((a, b) => b.average - a.average);
+            
+            // Render results
+            candidateAverages.forEach((candidate, index) => {
+                const row = document.createElement('tr');
+                
+                // Rank
+                const rankCell = document.createElement('td');
+                rankCell.textContent = index + 1;
+                row.appendChild(rankCell);
+                
+                // Name
+                const nameCell = document.createElement('td');
+                nameCell.className = 'candidate-name';
+                nameCell.textContent = candidate.name;
+                row.appendChild(nameCell);
+                
+                // Individual criteria ratings
+                candidate.ratings.forEach(rating => {
+                    const ratingCell = document.createElement('td');
+                    ratingCell.textContent = rating;
+                    row.appendChild(ratingCell);
+                });
+                
+                // Average
+                const avgCell = document.createElement('td');
+                avgCell.textContent = candidate.average.toFixed(2);
+                avgCell.style.fontWeight = 'bold';
+                row.appendChild(avgCell);
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function calculateFinalRankings() {
+            const finalRankingsDiv = document.getElementById('finalRankings');
+            const tbody = document.getElementById('finalRankingsBody');
+            tbody.innerHTML = '';
+            
+            // Calculate overall averages for each candidate
+            const candidateOverallAverages = [];
+            
+            candidates.forEach(candidateName => {
+                let totalSum = 0;
+                let totalCount = 0;
+                let raterCount = 0;
+                let ratersList = [];
+                
+                // Go through each rater's ratings for this candidate
+                for (const raterName in ratings) {
+                    if (ratings[raterName][candidateName]) {
+                        const candidateRatings = ratings[raterName][candidateName];
+                        const sum = candidateRatings.reduce((acc, val) => acc + val, 0);
+                        totalSum += sum;
+                        totalCount += candidateRatings.length;
+                        raterCount++;
+                        ratersList.push(raterName);
+                    }
+                }
+                
+                if (totalCount > 0) {
+                    candidateOverallAverages.push({
+                        name: candidateName,
+                        average: totalSum / totalCount,
+                        raterCount: raterCount,
+                        raters: ratersList
+                    });
+                }
+            });
+            
+            // Sort by average (highest first)
+            candidateOverallAverages.sort((a, b) => b.average - a.average);
+            
+            // Show results if we have any
+            if (candidateOverallAverages.length > 0) {
+                finalRankingsDiv.classList.remove('hidden');
+                
+                // Render results
+                candidateOverallAverages.forEach((candidate, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Rank
+                    const rankCell = document.createElement('td');
+                    rankCell.textContent = index + 1;
+                    row.appendChild(rankCell);
+                    
+                    // Name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'candidate-name';
+                    nameCell.textContent = candidate.name;
+                    row.appendChild(nameCell);
+                    
+                    // Overall average
+                    const avgCell = document.createElement('td');
+                    avgCell.textContent = candidate.average.toFixed(2);
+                    avgCell.style.fontWeight = 'bold';
+                    row.appendChild(avgCell);
+                    
+                    // Raters count
+                    const ratersCell = document.createElement('td');
+                    ratersCell.textContent = `${candidate.raterCount} ${candidate.raterCount === 1 ? 'rater' : 'raters'}`;
+                    const ratersTooltip = document.createElement('span');
+                    ratersTooltip.className = 'badge';
+                    ratersTooltip.textContent = candidate.raters.join(', ');
+                    ratersCell.appendChild(ratersTooltip);
+                    row.appendChild(ratersCell);
+                    
+                    tbody.appendChild(row);
+                });
+            } else {
+                finalRankingsDiv.classList.remove('hidden');
+                tbody.innerHTML = '<tr><td colspan="4">No ratings available</td></tr>';
+            }
+        }
+        
+        // Local storage functions
+        function saveToLocalStorage() {
+            localStorage.setItem('internRankingCandidates', JSON.stringify(candidates));
+            localStorage.setItem('internRankingRaters', JSON.stringify(raters));
+            localStorage.setItem('internRankingCriteria', JSON.stringify(criteria));
+            localStorage.setItem('internRankingRatings', JSON.stringify(ratings));
+        }
+        
+        function loadFromLocalStorage() {
+            const storedCandidates = localStorage.getItem('internRankingCandidates');
+            const storedRaters = localStorage.getItem('internRankingRaters');
+            const storedCriteria = localStorage.getItem('internRankingCriteria');
+            const storedRatings = localStorage.getItem('internRankingRatings');
+            
+            if (storedCandidates) candidates = JSON.parse(storedCandidates);
+            if (storedRaters) raters = JSON.parse(storedRaters);
+            if (storedCriteria) {
+                criteria = JSON.parse(storedCriteria);
+                // Update criteria input fields
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`criteria${i}`).value = criteria[i-1];
+                }
+            }
+            if (storedRatings) ratings = JSON.parse(storedRatings);
+        }
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
